@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unlimited Ad Earning</title>
+<style>
+body{ font-family:Arial; background:#111; color:#fff; text-align:center; }
+button{ padding:10px 20px; margin:5px; border:none; border-radius:5px; background:#00ffcc; color:#000; cursor:pointer; }
+button:disabled{ background:#555; }
+#progress-circle{ width:120px; height:120px; border-radius:50%; margin:20px auto; }
+</style>
+</head>
+<body>
+
+<h2>Earn Points (Unlimited Ads)</h2>
+<p>Ads Watched: <span id="watched-ads">0</span></p>
+<p>Points: <span id="earned-points">0</span></p>
+<div id="progress-circle"></div>
+<p id="ads-progress">0%</p>
+<button id="watch-ad-btn" disabled>Watch Ad</button>
+
+<!-- Monetag SDK -->
+<script src="//libtl.com/sdk.js" data-zone="10852660" data-sdk="show_10852660"></script>
+
+<script>
+let watchedAdsCount = parseInt(localStorage.getItem('watchedAdsCount')) || 0;
+let earnedPoints = parseFloat(localStorage.getItem('earnedPoints')) || 0;
+let monetagLoaded = false;
+let lastAdTime = 0;
+
+// UI আপডেট
+function updateUI(){
+    document.getElementById('watched-ads').textContent = watchedAdsCount;
+    document.getElementById('earned-points').textContent = earnedPoints.toFixed(2);
+    let percent = Math.min((watchedAdsCount/10)*100, 100);
+    document.getElementById('ads-progress').textContent = percent + '%';
+    document.getElementById('progress-circle').style.background = 
+        `conic-gradient(#00ffcc ${percent}%, rgba(0,255,204,0.1) ${percent}%)`;
+}
+updateUI();
+
+// SDK লোড চেক
+function checkSDK(){
+    if(typeof window.show_10852660 === 'function'){
+        monetagLoaded = true;
+        document.getElementById('watch-ad-btn').disabled = false;
+    } else {
+        setTimeout(checkSDK, 500);
+    }
+}
+window.addEventListener('DOMContentLoaded', checkSDK);
+
+// অ্যাড দেখার লজিক (Unlimited)
+document.getElementById('watch-ad-btn').addEventListener('click', ()=>{
+    if(!monetagLoaded){ alert('Ad লোড হয়নি'); return; }
+
+    // কুলডাউন (10 সেকেন্ড)
+    if(Date.now() - lastAdTime < 10000){ 
+        alert("10 সেকেন্ড অপেক্ষা করুন"); 
+        return; 
+    }
+
+    lastAdTime = Date.now();
+
+    show_10852660().then(()=>{
+        watchedAdsCount++;
+        earnedPoints += 0.5;  // প্রতি অ্যাডে পয়েন্ট
+
+        localStorage.setItem('watchedAdsCount', watchedAdsCount);
+        localStorage.setItem('earnedPoints', earnedPoints.toFixed(2));
+        updateUI();
+    }).catch(()=>{ alert('Ad দেখানো যায়নি'); });
+});
+</script>
+
+</body>
+</html>
